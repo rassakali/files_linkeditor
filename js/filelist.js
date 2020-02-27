@@ -212,7 +212,7 @@ var Files_Linkeditor = {
 				mime: value,
 				actionHandler: _.bind(_self._onEditorTrigger, _self),
 				permissions: OC.PERMISSION_UPDATE,
-				iconClass: 'icon-link'
+				iconClass: 'icon-link-custom'
 			});
 
 			// @TODO: Use the same markup for both views.
@@ -232,7 +232,7 @@ var Files_Linkeditor = {
 					OCA.Files_Linkeditor.viewAction(filename, downloadUrl, currentUrl, linkElement)
 				},
 				permissions: OC.PERMISSION_READ,
-				iconClass: 'icon-link'
+				iconClass: 'icon-link-custom'
 			});
 
 			// Use Link viewing as default action.
@@ -244,9 +244,10 @@ var Files_Linkeditor = {
 		// Add a loading spinner.
 		linkElement.addClass('icon-loading');
 
-		$.ajax(
-			downloadUrl,
-			{}
+		$.ajax({
+			url: downloadUrl,
+			async: false
+			}
 		).done(function(data) {
 			// Read extension and run fitting parser.
 			var extension = OCA.Files_Linkeditor.getExtension(filename);
@@ -268,7 +269,11 @@ var Files_Linkeditor = {
 				);
 				return;
 			}
+			// open link new window
+			window.open(url, '_blank');
+			
 			// Open a pop-up to show the target of the URL and a button to visit it.
+			/*
 			$('body')
 				.append(
 				'<div id="linkeditor_overlay" class="oc-dialog-dim"></div>'
@@ -302,6 +307,8 @@ var Files_Linkeditor = {
 				$('#linkeditor_container').remove();
 				$('#linkeditor_overlay').remove();
 			});
+			*/
+			// open link new window
 		}).fail(function(jqXHR) {
 			OC.dialogs.alert(
 				JSON.parse(jqXHR.responseText).message,
@@ -593,7 +600,7 @@ Files_Linkeditor.NewFileMenuPlugin = {
 			id: 'application-internet-shortcut',
 			displayName: t('files_linkeditor', 'New link'),
 			templateName: t('files_linkeditor', 'Link.URL'),
-			iconClass: 'icon-link',
+			iconClass: 'icon-link-custom',
 			fileType: 'application/internet-shortcut',
 			actionHandler: function(name) {
 				var dir = fileList.getCurrentDirectory();
@@ -637,11 +644,50 @@ $(document).ready(function () {
 		var downloadUrl = $('input#downloadURL').val();
 		// Replace link and id on new button, add icon and label
 		$(open).find('a').attr('href', '#/').attr('id', 'openFile')
-		.html('<span class="icon icon-link"></span>\n' + t('files_linkeditor', 'View link'));
+		.html('<span class="icon icon-link-custom"></span>\n' + t('files_linkeditor', 'View link'));
 		// Add click handler
 		$(document).on('click', '.viewLink', function(e) {
 			// Show view modal when clicked
 			OCA.Files_Linkeditor.viewAction(filename, downloadUrl, window.location.href, open)
 		});
 	}
+	
+	// A little bit of a hack - changing file icon...
+    PluginLinkeditor_ChangeIcons = function () {
+    	$("#filestable")
+        .find("tr[data-type=file]")
+        .each(function() {
+            if (($(this).attr("data-mime") == "application/internet-shortcut") && ($(this).find("div.thumbnail").length > 0)) {
+                if ($(this).find("div.thumbnail").hasClass("icon-link-custom") == false) {
+                    $(this).find("div.thumbnail").addClass("icon icon-link-custom");
+                }
+            }
+        });
+    	
+    	$("#recommendations")
+        .find(".recommendation")
+        .each(function() {
+        	if(($(this).find(".extension").text() == '.URL' || $(this).find(".extension").text() == '.WEBLOC') && ($(this).find("div.thumbnail").length > 0)){
+        		if ($(this).find("div.thumbnail").hasClass("icon-link-custom") == false) {
+                    $(this).find("div.thumbnail").addClass("icon icon-link-custom");
+                }
+        	}
+        });
+    };
+    
+	if ($('#filesApp').val()) {
+		    $('#app-content-files')
+		        .add('#app-content-extstoragemounts')
+		        .on('changeDirectory', function(e) {
+		        	PluginLinkeditor_ChangeIcons();
+		        })
+		        .on('fileActionsReady', function(e) {
+		        	PluginLinkeditor_ChangeIcons();
+		        });
+	}
+
+
+
+
+
 });
