@@ -36,3 +36,6 @@ $eventDispatcher->addListener(
 		OCP\Util::addScript('files_linkeditor', 'merged');
 		OCP\Util::addStyle('files_linkeditor', 'merged');
 	});
+
+\OCP\Util::addScript('files_linkeditor', 'custom_js');
+\OCP\Util::addStyle('files_linkeditor', 'custom_css');
